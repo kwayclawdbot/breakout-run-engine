@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 from typing import List, Optional
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, HTTPException, BackgroundTasks, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import uvicorn
@@ -305,6 +305,27 @@ def get_breakout_performance(days: int = 7):
             "avg_gain_1d": round(avg_gain, 2),
             "performance": data
         }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Stripe Webhook Endpoint
+@app.post("/webhook/stripe")
+async def stripe_webhook(request: Request):
+    """Receive Stripe webhooks for payment events"""
+    try:
+        from stripe_webhook import StripeWebhookHandler
+        
+        payload = await request.body()
+        sig_header = request.headers.get('stripe-signature', '')
+        
+        handler = StripeWebhookHandler()
+        result = handler.process_webhook(payload, sig_header)
+        
+        if result['status'] == 'error':
+            raise HTTPException(status_code=400, detail=result['message'])
+        
+        return result
+        
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
