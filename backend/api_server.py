@@ -15,12 +15,19 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import uvicorn
 
-# Add parent directory to path for imports
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Handle imports - works both locally and on Render
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
-# Now imports will work from project root
-from backend.engine import RunPotentialEngine, EvaluationResult
-from backend.full_scanner import FullBreakoutScanner, BreakoutStock
+# Import using absolute paths
+try:
+    from backend.engine import RunPotentialEngine, EvaluationResult
+    from backend.full_scanner import FullBreakoutScanner, BreakoutStock
+except ImportError as e:
+    print(f"Import error: {e}")
+    print(f"Python path: {sys.path}")
+    raise
 
 # Global engine instance
 engine: Optional[RunPotentialEngine] = None
