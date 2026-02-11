@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 
 # Import web search
 try:
-    from backend.data_fetchers.web_search import WebSearchFetcher
+    from .web_search import WebSearchFetcher
 except ImportError:
     from data_fetchers.web_search import WebSearchFetcher
 
