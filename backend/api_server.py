@@ -17,13 +17,13 @@ import uvicorn
 
 # Handle imports for both local and Render deployments
 try:
-    # Try relative imports first (when running from backend/ directory on Render)
-    from engine import RunPotentialEngine, EvaluationResult
-    from full_scanner import FullBreakoutScanner, BreakoutStock
-except ImportError:
-    # Fallback to absolute imports (for local development with backend. prefix)
+    # For Render - running from project root with backend. prefix
     from backend.engine import RunPotentialEngine, EvaluationResult
     from backend.full_scanner import FullBreakoutScanner, BreakoutStock
+except ImportError:
+    # For local development - running from backend/ directory
+    from engine import RunPotentialEngine, EvaluationResult
+    from full_scanner import FullBreakoutScanner, BreakoutStock
 
 # Global engine instance
 engine: Optional[RunPotentialEngine] = None
