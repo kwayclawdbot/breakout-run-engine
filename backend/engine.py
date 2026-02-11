@@ -13,11 +13,17 @@ from typing import Dict, List, Tuple
 from dataclasses import dataclass, asdict
 from dotenv import load_dotenv
 
-# Add parent directory to path
-sys.path.append('/Users/kwaysclawd/breakout-run-engine/backend')
-
-from data_fetchers.institutional_fetcher_free import FreeInstitutionalFetcher, InstitutionalAnalyzer
-from data_fetchers.enhanced_narrative_fetcher import EnhancedNarrativeFetcher
+# Handle imports for both local and Render deployments
+try:
+    # Try local imports first (for Render)
+    from backend.data_fetchers.institutional_fetcher_free import FreeInstitutionalFetcher, InstitutionalAnalyzer
+    from backend.data_fetchers.enhanced_narrative_fetcher import EnhancedNarrativeFetcher
+    from backend.data_fetchers.yahoo_fetcher import YahooFetcher
+except ImportError:
+    # Fallback to relative imports (for local development)
+    from data_fetchers.institutional_fetcher_free import FreeInstitutionalFetcher, InstitutionalAnalyzer
+    from data_fetchers.enhanced_narrative_fetcher import EnhancedNarrativeFetcher
+    from data_fetchers.yahoo_fetcher import YahooFetcher
 
 load_dotenv()
 
