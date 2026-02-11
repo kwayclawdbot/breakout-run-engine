@@ -13,13 +13,16 @@ from typing import Dict, List, Tuple
 from dataclasses import dataclass, asdict
 from dotenv import load_dotenv
 
-# Add parent directory to path for imports (works on both Render and local)
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-# Now imports will work from project root
-from backend.data_fetchers.institutional_fetcher_free import FreeInstitutionalFetcher, InstitutionalAnalyzer
-from backend.data_fetchers.enhanced_narrative_fetcher import EnhancedNarrativeFetcher
-from backend.data_fetchers.yahoo_fetcher import YahooFetcher
+# Use relative imports within the backend package
+try:
+    from .data_fetchers.institutional_fetcher_free import FreeInstitutionalFetcher, InstitutionalAnalyzer
+    from .data_fetchers.enhanced_narrative_fetcher import EnhancedNarrativeFetcher
+    from .data_fetchers.yahoo_fetcher import YahooFetcher
+except ImportError:
+    # Fallback for when running as script
+    from data_fetchers.institutional_fetcher_free import FreeInstitutionalFetcher, InstitutionalAnalyzer
+    from data_fetchers.enhanced_narrative_fetcher import EnhancedNarrativeFetcher
+    from data_fetchers.yahoo_fetcher import YahooFetcher
 
 load_dotenv()
 
