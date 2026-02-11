@@ -16,18 +16,16 @@ from pydantic import BaseModel
 import uvicorn
 
 # Handle imports - works both locally and on Render
-project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if project_root not in sys.path:
-    sys.path.insert(0, project_root)
-
-# Import using absolute paths
 try:
+    # Relative imports when loaded as part of backend package
+    from .engine import RunPotentialEngine, EvaluationResult
+    from .full_scanner import FullBreakoutScanner, BreakoutStock
+    from .stripe_webhook import StripeWebhookHandler
+except ImportError:
+    # Absolute imports when run as script locally
     from backend.engine import RunPotentialEngine, EvaluationResult
     from backend.full_scanner import FullBreakoutScanner, BreakoutStock
-except ImportError as e:
-    print(f"Import error: {e}")
-    print(f"Python path: {sys.path}")
-    raise
+    from backend.stripe_webhook import StripeWebhookHandler
 
 # Global engine instance
 engine: Optional[RunPotentialEngine] = None
@@ -320,7 +318,8 @@ def get_breakout_performance(days: int = 7):
 async def stripe_webhook(request: Request):
     """Receive Stripe webhooks for payment events"""
     try:
-        from stripe_webhook import StripeWebhookHandler
+        # Import already done at top of file
+        handler = StripeWebhookHandler()
         
         payload = await request.body()
         sig_header = request.headers.get('stripe-signature', '')
