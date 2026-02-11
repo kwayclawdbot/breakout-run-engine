@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: breakout-run-api
+    runtime: python
+    plan: starter
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: cd backend && uvicorn api_server:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: ALPHA_VANTAGE_API_KEY
+        value: SPV6KJ86E42SSV0R
+      - key: BRAVE_API_KEY
+        value: BSARPt4icZph_z4Ma53e-iNv60qrLJX
+      - key: PYTHON_VERSION
+        value: 3.11.0
+    healthCheckPath: /health
+    autoDeploy: true
