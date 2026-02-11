@@ -1,0 +1,11 @@
+# Render Deployment Configuration
+
+# Build command
+pip install -r requirements.txt
+
+# Start command
+uvicorn api_server:app --host 0.0.0.0 --port $PORT
+
+# Environment variables to set in Render dashboard:
+# ALPHA_VANTAGE_API_KEY=SPV6KJ86E42SSV0R
+# BRAVE_API_KEY=BSARPt4icZph_z4Ma53e-iNv60qrLJX
