@@ -6,7 +6,7 @@ FastAPI Server for Breakout Run Potential Evaluation Engine
 import os
 import sys
 import asyncio
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List, Optional
 from contextlib import asynccontextmanager
 
@@ -15,10 +15,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import uvicorn
 
-# Add parent directory to path
-sys.path.append('/Users/kwaysclawd/breakout-run-engine/backend')
-
-from engine import RunPotentialEngine, EvaluationResult
+# Handle imports for both local and Render deployments
+try:
+    # Try local imports first (for Render)
+    from backend.engine import RunPotentialEngine, EvaluationResult
+    from backend.full_scanner import FullBreakoutScanner, BreakoutStock
+except ImportError:
+    # Fallback to relative imports (for local development)
+    from engine import RunPotentialEngine, EvaluationResult
+    from full_scanner import FullBreakoutScanner, BreakoutStock
 
 # Global engine instance
 engine: Optional[RunPotentialEngine] = None
@@ -196,6 +201,115 @@ def get_history(ticker: str):
         "history": [],
         "note": "Historical data storage not yet implemented"
     }
+
+# Full Breakout Scanner Endpoints
+@app.post("/breakout/scan")
+async def breakout_scan(background_tasks: BackgroundTasks):
+    """Run full S&P 500 breakout scan - stores results in Supabase"""
+    try:
+        scanner = FullBreakoutScanner()
+        results = await scanner.run_full_scan()
+        
+        return {
+            "status": "complete",
+            "count": len(results),
+            "breakouts": [
+                {
+                    "ticker": s.ticker,
+                    "price": s.close_price,
+                    "score": s.breakout_score,
+                    "rsi": s.rsi,
+                    "volume_ratio": s.volume_ratio,
+                    "alert": s.humanized_alert
+                }
+                for s in results
+            ]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/breakout/scan-and-send")
+async def breakout_scan_and_send(phone: str, background_tasks: BackgroundTasks):
+    """Run scan and send SMS to specific phone number"""
+    try:
+        scanner = FullBreakoutScanner()
+        results = await scanner.run_full_scan()
+        
+        if not results:
+            return {
+                "status": "complete",
+                "sent": False,
+                "message": "No breakout stocks found"
+            }
+        
+        # Send SMS in background
+        background_tasks.add_task(scanner.send_sms_alert, results, phone)
+        
+        return {
+            "status": "processing",
+            "sent": True,
+            "count": len(results),
+            "breakouts": [s.ticker for s in results],
+            "message": f"SMS being sent to {phone}"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/breakout/stocks")
+def get_breakout_stocks(limit: int = 10):
+    """Get recent breakout stocks from Supabase"""
+    try:
+        from supabase import create_client
+        import os
+        
+        supabase = create_client(
+            os.getenv('SUPABASE_URL'),
+            os.getenv('SUPABASE_KEY')
+        )
+        
+        # Get recent alerts from last 7 days
+        cutoff = (datetime.now() - timedelta(days=7)).isoformat()
+        result = supabase.table('sent_alerts').select('*').gte('sent_at', cutoff).order('sent_at', desc=True).limit(limit).execute()
+        
+        return {
+            "count": len(result.data),
+            "alerts": result.data
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/breakout/performance")
+def get_breakout_performance(days: int = 7):
+    """Get performance tracking for alerts"""
+    try:
+        from supabase import create_client
+        import os
+        
+        supabase = create_client(
+            os.getenv('SUPABASE_URL'),
+            os.getenv('SUPABASE_KEY')
+        )
+        
+        # Get performance data
+        cutoff = (datetime.now() - timedelta(days=days)).isoformat()
+        result = supabase.table('alert_performance').select('*').gte('created_at', cutoff).execute()
+        
+        # Calculate stats
+        data = result.data
+        total = len(data)
+        winners = len([d for d in data if d.get('gain_1d', 0) > 0])
+        avg_gain = sum([d.get('gain_1d', 0) for d in data]) / total if total > 0 else 0
+        
+        return {
+            "period_days": days,
+            "total_alerts": total,
+            "winners": winners,
+            "win_rate": round(winners / total * 100, 1) if total > 0 else 0,
+            "avg_gain_1d": round(avg_gain, 2),
+            "performance": data
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     print("="*70)
