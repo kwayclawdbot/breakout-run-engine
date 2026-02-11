@@ -15,15 +15,15 @@ from dotenv import load_dotenv
 
 # Handle imports for both local and Render deployments
 try:
-    # Try local imports first (for Render)
-    from backend.data_fetchers.institutional_fetcher_free import FreeInstitutionalFetcher, InstitutionalAnalyzer
-    from backend.data_fetchers.enhanced_narrative_fetcher import EnhancedNarrativeFetcher
-    from backend.data_fetchers.yahoo_fetcher import YahooFetcher
-except ImportError:
-    # Fallback to relative imports (for local development)
+    # Try relative imports first (when running from backend/ directory on Render)
     from data_fetchers.institutional_fetcher_free import FreeInstitutionalFetcher, InstitutionalAnalyzer
     from data_fetchers.enhanced_narrative_fetcher import EnhancedNarrativeFetcher
     from data_fetchers.yahoo_fetcher import YahooFetcher
+except ImportError:
+    # Fallback to absolute imports (for local development with backend. prefix)
+    from backend.data_fetchers.institutional_fetcher_free import FreeInstitutionalFetcher, InstitutionalAnalyzer
+    from backend.data_fetchers.enhanced_narrative_fetcher import EnhancedNarrativeFetcher
+    from backend.data_fetchers.yahoo_fetcher import YahooFetcher
 
 load_dotenv()
 
