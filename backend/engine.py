@@ -13,15 +13,21 @@ from typing import Dict, List, Tuple
 from dataclasses import dataclass, asdict
 from dotenv import load_dotenv
 
-# Add parent directory to path BEFORE any imports (critical for Render)
-parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if parent_dir not in sys.path:
-    sys.path.insert(0, parent_dir)
-
-# Now imports will work
-from backend.data_fetchers.institutional_fetcher_free import FreeInstitutionalFetcher, InstitutionalAnalyzer
-from backend.data_fetchers.enhanced_narrative_fetcher import EnhancedNarrativeFetcher
-from backend.data_fetchers.yahoo_fetcher import YahooFetcher
+# Use relative imports since we're inside the backend package
+try:
+    from data_fetchers.institutional_fetcher_free import FreeInstitutionalFetcher, InstitutionalAnalyzer
+    from data_fetchers.enhanced_narrative_fetcher import EnhancedNarrativeFetcher
+    from data_fetchers.yahoo_fetcher import YahooFetcher
+except ImportError:
+    # Fallback for when backend is not in path
+    import sys
+    import os
+    parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    if parent_dir not in sys.path:
+        sys.path.insert(0, parent_dir)
+    from backend.data_fetchers.institutional_fetcher_free import FreeInstitutionalFetcher, InstitutionalAnalyzer
+    from backend.data_fetchers.enhanced_narrative_fetcher import EnhancedNarrativeFetcher
+    from backend.data_fetchers.yahoo_fetcher import YahooFetcher
 
 load_dotenv()
 
