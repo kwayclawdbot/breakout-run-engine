@@ -12,14 +12,16 @@ from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass
 from dotenv import load_dotenv
 
-# Add parent directory to path BEFORE any imports (critical for Render)
-import sys
-parent_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-if parent_dir not in sys.path:
-    sys.path.insert(0, parent_dir)
-
-# Now imports will work
-from backend.data_fetchers.web_search import WebSearchFetcher
+# Use relative imports since we're inside the backend.data_fetchers package
+try:
+    from web_search import WebSearchFetcher
+except ImportError:
+    # Fallback
+    import sys
+    parent_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    if parent_dir not in sys.path:
+        sys.path.insert(0, parent_dir)
+    from backend.data_fetchers.web_search import WebSearchFetcher
 
 load_dotenv()
 
