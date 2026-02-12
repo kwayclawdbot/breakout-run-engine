@@ -15,17 +15,17 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import uvicorn
 
-# Handle imports - works both locally and on Render
-try:
-    # Relative imports when loaded as part of backend package
-    from .engine import RunPotentialEngine, EvaluationResult
-    from .full_scanner import FullBreakoutScanner, BreakoutStock
-    from .stripe_webhook import StripeWebhookHandler
-except ImportError:
-    # Absolute imports when run as script locally
-    from backend.engine import RunPotentialEngine, EvaluationResult
-    from backend.full_scanner import FullBreakoutScanner, BreakoutStock
-    from backend.stripe_webhook import StripeWebhookHandler
+# Add parent directory to path BEFORE any imports (critical for Render)
+import sys
+import os
+parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if parent_dir not in sys.path:
+    sys.path.insert(0, parent_dir)
+
+# Now imports will work
+from backend.engine import RunPotentialEngine, EvaluationResult
+from backend.full_scanner import FullBreakoutScanner, BreakoutStock
+from backend.stripe_webhook import StripeWebhookHandler
 
 # Global engine instance
 engine: Optional[RunPotentialEngine] = None
