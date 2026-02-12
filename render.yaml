@@ -3,11 +3,8 @@ services:
     name: breakout-run-api
     runtime: python
     plan: starter
-    buildCommand: |
-      pip install -r backend/requirements.txt
-    startCommand: |
-      export PYTHONPATH="$PYTHONPATH:/opt/render/project/src"
-      cd backend && python -m uvicorn api_server:app --host 0.0.0.0 --port $PORT
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: cd backend && python -m uvicorn api_server:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: ALPHA_VANTAGE_API_KEY
         value: SPV6KJ86E42SSV0R
