@@ -15,17 +15,21 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import uvicorn
 
-# Add parent directory to path BEFORE any imports (critical for Render)
-import sys
-import os
-parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if parent_dir not in sys.path:
-    sys.path.insert(0, parent_dir)
-
-# Now imports will work
-from backend.engine import RunPotentialEngine, EvaluationResult
-from backend.full_scanner import FullBreakoutScanner, BreakoutStock
-from backend.stripe_webhook import StripeWebhookHandler
+# Use relative imports since we're inside the backend package
+try:
+    from engine import RunPotentialEngine, EvaluationResult
+    from full_scanner import FullBreakoutScanner, BreakoutStock
+    from stripe_webhook import StripeWebhookHandler
+except ImportError:
+    # Fallback for when backend is not in path
+    import sys
+    import os
+    parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    if parent_dir not in sys.path:
+        sys.path.insert(0, parent_dir)
+    from backend.engine import RunPotentialEngine, EvaluationResult
+    from backend.full_scanner import FullBreakoutScanner, BreakoutStock
+    from backend.stripe_webhook import StripeWebhookHandler
 
 # Global engine instance
 engine: Optional[RunPotentialEngine] = None
